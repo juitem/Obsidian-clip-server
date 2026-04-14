@@ -7,7 +7,6 @@ from flask import Flask, jsonify, render_template, request
 import config
 from clipper import trafilatura_clipper, playwright_clipper
 from clipper.storage import save_clipping
-from clipper.obsidian import push_to_obsidian
 
 app = Flask(__name__)
 
@@ -17,7 +16,7 @@ def index():
     return render_template("index.html")
 
 
-def _run_clip(url, method, use_obsidian=True):
+def _run_clip(url, method):
     """Run a single clipping method. Returns a result dict."""
     start = time.time()
     try:
@@ -28,26 +27,13 @@ def _run_clip(url, method, use_obsidian=True):
         else:
             raise ValueError(f"Unknown method: {method}")
 
-        filepath, vault_relative = save_clipping(title, url, content, method)
-
-        obsidian_ok = False
-        obsidian_error = None
-        if use_obsidian:
-            with open(filepath, "r", encoding="utf-8") as f:
-                file_content = f.read()
-            try:
-                push_to_obsidian(vault_relative, file_content)
-                obsidian_ok = True
-            except Exception as e:
-                obsidian_error = str(e)
+        filepath, _ = save_clipping(title, url, content, method)
 
         elapsed = round(time.time() - start, 2)
         return {
             "method": method,
             "success": True,
             "file": filepath,
-            "obsidian": obsidian_ok,
-            "obsidian_error": obsidian_error,
             "elapsed": elapsed,
         }
 
@@ -69,17 +55,13 @@ def clip():
         return jsonify({"error": "Missing 'url' field"}), 400
 
     url = data["url"].strip()
-    methods = data.get("methods", ["trafilatura", "playwright"])
-    use_obsidian = "obsidian" in methods
-    clip_methods = [m for m in methods if m != "obsidian"]
+    methods = [m for m in data.get("methods", ["trafilatura", "playwright"]) if m != "obsidian"]
 
-    if not clip_methods:
+    if not methods:
         return jsonify({"error": "No clipping method selected"}), 400
 
     with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {
-            executor.submit(_run_clip, url, m, use_obsidian): m for m in clip_methods
-        }
+        futures = {executor.submit(_run_clip, url, m): m for m in methods}
         results = [f.result() for f in futures]
 
     return jsonify({"results": results})

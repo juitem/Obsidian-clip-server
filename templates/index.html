@@ -177,13 +177,9 @@
                     card.className = `result-card ${r.success ? "success" : "fail"}`;
 
                     if (r.success) {
-                        let obsNote = r.obsidian
-                            ? "Obsidian 연동 성공"
-                            : `Obsidian 연동 실패: ${r.obsidian_error || "unknown"}`;
                         card.innerHTML = `
                             <h3>${r.method} - 성공</h3>
                             <p class="filepath">${r.file}</p>
-                            <p>${obsNote}</p>
                             <p>소요시간: ${r.elapsed}s</p>
                         `;
                     } else {
