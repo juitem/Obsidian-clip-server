@@ -147,9 +147,8 @@
             const methods = [];
             if (document.getElementById("tb-trafilatura").classList.contains("active")) methods.push("trafilatura");
             if (document.getElementById("tb-playwright").classList.contains("active")) methods.push("playwright");
-            if (methods.length === 0) return alert("방식을 하나 이상 선택하세요");
-
-            const useObsidian = document.getElementById("tb-obsidian").classList.contains("active");
+            if (document.getElementById("tb-obsidian").classList.contains("active")) methods.push("obsidian");
+            if (methods.filter(m => m !== "obsidian").length === 0) return alert("클리핑 방식을 하나 이상 선택하세요");
 
             const btn = document.getElementById("clip-btn");
             const spinner = document.getElementById("spinner");
@@ -163,7 +162,7 @@
                 const resp = await fetch("/clip", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url, methods, obsidian: useObsidian }),
+                    body: JSON.stringify({ url, methods }),
                 });
                 const data = await resp.json();
 

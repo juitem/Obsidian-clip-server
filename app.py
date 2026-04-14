@@ -70,14 +70,15 @@ def clip():
 
     url = data["url"].strip()
     methods = data.get("methods", ["trafilatura", "playwright"])
-    use_obsidian = data.get("obsidian", True)
+    use_obsidian = "obsidian" in methods
+    clip_methods = [m for m in methods if m != "obsidian"]
 
-    if not methods:
-        return jsonify({"error": "No methods selected"}), 400
+    if not clip_methods:
+        return jsonify({"error": "No clipping method selected"}), 400
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {
-            executor.submit(_run_clip, url, m, use_obsidian): m for m in methods
+            executor.submit(_run_clip, url, m, use_obsidian): m for m in clip_methods
         }
         results = [f.result() for f in futures]
 
