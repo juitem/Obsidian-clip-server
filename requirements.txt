@@ -1,0 +1,6 @@
+flask
+trafilatura
+playwright
+markdownify
+psutil
+requests
