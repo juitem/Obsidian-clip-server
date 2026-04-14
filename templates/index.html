@@ -59,6 +59,7 @@
             color: #cdd6f4;
         }
         .toggle-btn:active { transform: scale(0.97); }
+        .toggle-btn.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
 
         #clip-btn {
             width: 100%;
@@ -128,7 +129,7 @@
         <div class="toggles">
             <div class="toggle-btn active" id="tb-trafilatura" onclick="toggle(this)">trafilatura</div>
             <div class="toggle-btn active" id="tb-playwright" onclick="toggle(this)">playwright</div>
-            <div class="toggle-btn active" id="tb-obsidian" onclick="toggle(this)">Obsidian API</div>
+            <div class="toggle-btn disabled" id="tb-obsidian" title="추후 지원 예정">Obsidian API</div>
         </div>
 
         <button id="clip-btn" onclick="doClip()">Clip</button>
