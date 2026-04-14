@@ -1,6 +1,11 @@
 import os
+from pathlib import Path
 
-VAULT_PATH = "/Users/juitem/Documents/ObsidianM4mini"
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent / ".env")
+
+VAULT_PATH = os.environ["VAULT_PATH"]
 
 SAVE_PATHS = {
     "trafilatura": os.path.join(VAULT_PATH, "ClippingsOthers", "trafilatura"),
@@ -10,7 +15,7 @@ SAVE_PATHS = {
 OBSIDIAN_API_URL = "http://localhost:27123"
 OBSIDIAN_API_KEY = os.environ.get("OBSIDIAN_API_KEY", "")
 
-PORT = 7676
+PORT = int(os.environ.get("PORT", 7676))
 HOST = "0.0.0.0"
 
 PLAYWRIGHT_TIMEOUT = 30000  # ms

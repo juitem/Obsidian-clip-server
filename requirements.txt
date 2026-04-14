@@ -4,3 +4,4 @@ playwright
 markdownify
 psutil
 requests
+python-dotenv
