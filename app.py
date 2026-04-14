@@ -17,7 +17,7 @@ def index():
     return render_template("index.html")
 
 
-def _run_clip(url, method):
+def _run_clip(url, method, use_obsidian=True):
     """Run a single clipping method. Returns a result dict."""
     start = time.time()
     try:
@@ -30,17 +30,16 @@ def _run_clip(url, method):
 
         filepath, vault_relative = save_clipping(title, url, content, method)
 
-        # Read saved file content for Obsidian push
-        with open(filepath, "r", encoding="utf-8") as f:
-            file_content = f.read()
-
         obsidian_ok = False
         obsidian_error = None
-        try:
-            push_to_obsidian(vault_relative, file_content)
-            obsidian_ok = True
-        except Exception as e:
-            obsidian_error = str(e)
+        if use_obsidian:
+            with open(filepath, "r", encoding="utf-8") as f:
+                file_content = f.read()
+            try:
+                push_to_obsidian(vault_relative, file_content)
+                obsidian_ok = True
+            except Exception as e:
+                obsidian_error = str(e)
 
         elapsed = round(time.time() - start, 2)
         return {
@@ -71,13 +70,14 @@ def clip():
 
     url = data["url"].strip()
     methods = data.get("methods", ["trafilatura", "playwright"])
+    use_obsidian = data.get("obsidian", True)
 
     if not methods:
         return jsonify({"error": "No methods selected"}), 400
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         futures = {
-            executor.submit(_run_clip, url, m): m for m in methods
+            executor.submit(_run_clip, url, m, use_obsidian): m for m in methods
         }
         results = [f.result() for f in futures]
 

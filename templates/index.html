@@ -11,55 +11,76 @@
             background: #1e1e2e;
             color: #cdd6f4;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             justify-content: center;
             padding: 2rem 1rem;
+            -webkit-tap-highlight-color: transparent;
         }
         .container { max-width: 640px; width: 100%; }
-        h1 { font-size: 1.5rem; margin-bottom: 1.5rem; color: #cba6f7; }
+        h1 { font-size: 1.6rem; margin-bottom: 1.5rem; color: #cba6f7; }
 
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #a6adc8; }
+        .form-group { margin-bottom: 1.2rem; }
+        label { display: block; font-size: 0.9rem; margin-bottom: 0.4rem; color: #a6adc8; }
         input[type="url"] {
             width: 100%;
-            padding: 0.6rem 0.8rem;
+            padding: 0.85rem 1rem;
             background: #313244;
             border: 1px solid #45475a;
-            border-radius: 6px;
+            border-radius: 10px;
             color: #cdd6f4;
-            font-size: 1rem;
+            font-size: 1.05rem;
         }
         input[type="url"]:focus { outline: none; border-color: #cba6f7; }
 
-        .checkboxes {
-            display: flex; gap: 1.2rem;
-            margin-bottom: 1.2rem;
+        .toggles {
+            display: flex; gap: 0.5rem;
+            margin-bottom: 1.4rem;
         }
-        .checkboxes label {
-            display: flex; align-items: center; gap: 0.4rem;
-            font-size: 0.95rem; cursor: pointer; color: #cdd6f4;
+        .toggle-btn {
+            flex: 1;
+            padding: 0.9rem 0.4rem;
+            min-height: 48px;
+            background: #313244;
+            border: 2px solid #45475a;
+            border-radius: 10px;
+            color: #6c7086;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            -webkit-user-select: none;
         }
+        .toggle-btn.active {
+            background: #45475a;
+            border-color: #cba6f7;
+            color: #cdd6f4;
+        }
+        .toggle-btn:active { transform: scale(0.97); }
 
-        button {
+        #clip-btn {
             width: 100%;
-            padding: 0.7rem;
+            padding: 1rem;
+            min-height: 52px;
             background: #cba6f7;
             color: #1e1e2e;
             border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 600;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
             transition: opacity 0.2s;
         }
-        button:hover { opacity: 0.9; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #clip-btn:active { transform: scale(0.98); }
+        #clip-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
         .results { margin-top: 1.5rem; }
         .result-card {
             background: #313244;
-            border-radius: 8px;
-            padding: 1rem;
+            border-radius: 10px;
+            padding: 1rem 1.1rem;
             margin-bottom: 0.8rem;
             border-left: 4px solid #45475a;
         }
@@ -67,14 +88,14 @@
         .result-card.fail { border-left-color: #f38ba8; }
 
         .result-card h3 {
-            font-size: 0.95rem;
+            font-size: 1rem;
             margin-bottom: 0.5rem;
             text-transform: uppercase;
         }
         .result-card.success h3 { color: #a6e3a1; }
         .result-card.fail h3 { color: #f38ba8; }
 
-        .result-card p { font-size: 0.85rem; margin: 0.2rem 0; color: #a6adc8; }
+        .result-card p { font-size: 0.9rem; margin: 0.3rem 0; color: #a6adc8; }
         .result-card .filepath { word-break: break-all; color: #89b4fa; }
         .result-card .error-msg { color: #f38ba8; }
 
@@ -82,9 +103,17 @@
             display: none;
             text-align: center;
             margin-top: 1.5rem;
+            font-size: 1rem;
             color: #a6adc8;
         }
         .spinner.active { display: block; }
+
+        @media (max-width: 480px) {
+            body { padding: 1.2rem 0.8rem; }
+            h1 { font-size: 1.4rem; }
+            .toggles { gap: 0.4rem; }
+            .toggle-btn { font-size: 0.85rem; padding: 0.85rem 0.3rem; }
+        }
     </style>
 </head>
 <body>
@@ -96,9 +125,10 @@
             <input type="url" id="url" placeholder="https://example.com/article" autofocus>
         </div>
 
-        <div class="checkboxes">
-            <label><input type="checkbox" id="cb-trafilatura" checked> trafilatura</label>
-            <label><input type="checkbox" id="cb-playwright" checked> playwright</label>
+        <div class="toggles">
+            <div class="toggle-btn active" id="tb-trafilatura" onclick="toggle(this)">trafilatura</div>
+            <div class="toggle-btn active" id="tb-playwright" onclick="toggle(this)">playwright</div>
+            <div class="toggle-btn active" id="tb-obsidian" onclick="toggle(this)">Obsidian API</div>
         </div>
 
         <button id="clip-btn" onclick="doClip()">Clip</button>
@@ -108,14 +138,18 @@
     </div>
 
     <script>
+        function toggle(el) { el.classList.toggle("active"); }
+
         async function doClip() {
             const url = document.getElementById("url").value.trim();
             if (!url) return alert("URL을 입력하세요");
 
             const methods = [];
-            if (document.getElementById("cb-trafilatura").checked) methods.push("trafilatura");
-            if (document.getElementById("cb-playwright").checked) methods.push("playwright");
+            if (document.getElementById("tb-trafilatura").classList.contains("active")) methods.push("trafilatura");
+            if (document.getElementById("tb-playwright").classList.contains("active")) methods.push("playwright");
             if (methods.length === 0) return alert("방식을 하나 이상 선택하세요");
+
+            const useObsidian = document.getElementById("tb-obsidian").classList.contains("active");
 
             const btn = document.getElementById("clip-btn");
             const spinner = document.getElementById("spinner");
@@ -129,7 +163,7 @@
                 const resp = await fetch("/clip", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ url, methods }),
+                    body: JSON.stringify({ url, methods, obsidian: useObsidian }),
                 });
                 const data = await resp.json();
 
